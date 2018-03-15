@@ -12,9 +12,9 @@ In pharo playground execute the next piece of code
 
 ```Smalltalk
 Gofer it
-  smalltalkhubUser: 'ObjectProfile' project: 'Pharo2VW';
-  package: 'Pharo2VW';
-  load.
+	smalltalkhubUser: 'ObjectProfile' project: 'Pharo2VW';
+	package: 'Pharo2VW';
+	load.
 ```
 
 ## Getting Started
@@ -58,11 +58,11 @@ Pharo2VW exporter
 
 After you get the file `MySpaceInVW.st` you can load it into a visualworks image
 
-0. In this example, create a bundle called `MyBundle`, and add the package `MyPackage` in that bundle
-1. For `MyPackage`, rightclick then select the option `File into...`.
-2. Select the file `MySpaceInVW.st` and load it.
-3. If you get some error loading the file. Delete the loaded code, and fix the problem in pharo. (Common errors: your code have '{}', or your code have '..', etc )
-4. At this point your code is loaded in visualworks all classes in the same package. Probably now you need the classes have the same package organization that it has in pharo. In that case try to use the next piece of code.
+1. In this example, create a bundle called `MyBundle`, and add the package `MyPackage` in that bundle
+2. For `MyPackage`, rightclick then select the option `File into...`.
+3. Select the file `MySpaceInVW.st` and load it.
+4. If you get some error loading the file. Delete the loaded code, and fix the problem in pharo. (Common errors: your code have '{}', or your code have '..', etc )
+5. At this point your code is loaded in visualworks all classes in the same package. Probably now you need the classes have the same package organization. In that case try to use the next piece of code.
 
 ```Smalltalk
 | main classes cat pkg |
@@ -77,11 +77,11 @@ classes do: [ :cls |
 		p ].
 	XChangeSet current moveWholeClass: cls toPackage: pkg
 ```
-5. Run the tests, you need to have many tests to ensure that you code works well in Visualworks like in pharo
-6. In some cases you will need code that not exists in pharo. In that case you can create class extentions. In this example maybe we need to have a particular method of `Color` from pharo in `ColorValue` the color class in visualworks. So we can create an extention.
-7. Create the package `MyPackage-extentions` then rightclick in the class area, and select `add class extention` for class `ColorValue`. With extentions you can add or override existing methods in visualworks, please try to avoid overrides.
+6. Run the tests, you need to have many tests to ensure that you code works well in Visualworks like in pharo
+7. In some cases you will need code that not exists in pharo. In that case you can create class extentions. In this example maybe we need to have a particular method of `Color` from pharo in `ColorValue` the color class in visualworks. So we can create an extention.
+8. Create the package `MyPackage-extentions` then rightclick in the class area, and select `add class extention` for class `ColorValue`. With extentions you can add or override existing methods in visualworks, please try to avoid overrides.
 8. In case that you need a different class of visualworks like `DateAndTime` in pharo, but for visualworks that class is `Timestamp`. Maybe you will need a class `Platform` in order to idenfify when your system is running in pharo or in visualworks, to use the correct classes.
-9. In case that you need to update your code. You will need to delete all the code and packages(except extentions) and load the process again. For that case use this example script.
+10. In case that you need to update your code. You will need to delete all the code and packages(except extentions) and load the process again. For that case use this example script.
 
 ```Smalltalk
 | b notremove |
@@ -94,8 +94,8 @@ b leafItems do: [ :pkg |
 ]. 
 
 ```
-10. In visualworks check that your source code do not have refereces to undefined objects, you can check this in you bundle tab `Prerequisites`
-11. At this points, you have correct extentions, your classes are in the correct package, your tests are green, and you do not have references to undefined objects. Now you can upload you code to the public repository. Finally last point is check the bundle load order. you can see that in `Bundle Structure` tab. Try you use the next example to set the load order of your packages.
+11. In visualworks check that your source code do not have refereces to undefined objects, you can check this in you bundle tab `Prerequisites`
+12. At this points, you have correct extentions, your classes are in the correct package, your tests are green, and you do not have references to undefined objects. Now you can upload you code to the public repository. Finally last point is check the bundle load order. you can see that in `Bundle Structure` tab. Try you use the next example to set the load order of your packages.
 
 ```Smalltalk
 b := Registry bundleNamed: 'MyBundle'.
@@ -105,17 +105,13 @@ list remove: r first.
 list add: r first.
 b containedItems: list.
 ```
-12. Now publish your code and drink a glass of beer!!
+13. Now publish your code and drink a glass of beer!!
 
 Browse the `Pharo2VWExamples` in your system browser to get more examples
 
 ## Running the tests
 
 Use test runner to execute the tests. `Pharo2VWExporterTest` execute all the examples in `Pharo2VWExamples`
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
 
 ## Versioning
 
