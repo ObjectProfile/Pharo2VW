@@ -30,12 +30,14 @@ Pharo2VWExporterTest >> testBasicExport [
 ]
 
 { #category : #tests }
-Pharo2VWExporterTest >> testExampleExportPacakgeBasic [
-	| inst |
+Pharo2VWExporterTest >> testExampleExportPackageBasic [
+	| inst parsedXML |
 	inst := Pharo2VWExamples new.
 	inst exampleExportPackageBasic.
-	self exportedFile contents.
-	self assert: false
+	self shouldnt: [ parsedXML := XMLDOMParser parse: self exportedFile contents ] raise: XMLException.
+	self
+		assert: (XPath for: '//class' in: parsedXML) size
+		equals: ((RPackageOrganizer default packageNamed: 'Moose-TestResources-LAN') classes select: #isClass) size
 ]
 
 { #category : #tests }

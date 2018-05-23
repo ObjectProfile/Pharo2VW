@@ -11,12 +11,12 @@ Class {
 		'packagesTags',
 		'classes',
 		'methods',
-		'stream',
 		'methodsBlacklist',
 		'checkForArrays',
-		'showMethodsWithArray'
+		'showMethodsWithArray',
+		'writer'
 	],
-	#category : 'Pharo2VW-Core'
+	#category : #'Pharo2VW-Core'
 }
 
 { #category : #'instance creation' }
@@ -51,9 +51,7 @@ Pharo2VW >> checkForBadArraysIfNecessary [
 
 { #category : #accessing }
 Pharo2VW >> classes [
-	^ classes ifNil: [ classes := OrderedCollection new.
-		self packagesTags do: [ :pkg | classes addAll: pkg classes ].
-		classes ].
+	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] ]
 ]
 
 { #category : #accessing }
@@ -78,29 +76,28 @@ Pharo2VW >> environment: aString [
 
 { #category : #public }
 Pharo2VW >> export [
-	| filename |
+	| filename stream |
 	self checkForBadArraysIfNecessary.
 	filename := self directory / (self environment , '.st').
 	filename exists
 		ifTrue: [ filename delete ].
 	stream := filename writeStream.
-	[ stream
-		nextPutAll: '<?xml version="1.0"?>';
-		cr;
-		cr.
-	self
+	writer := (XMLWriter on: stream) enablePrettyPrinting ; yourself.
+	[ writer xml.
+	writer
 		tag: 'st-source'
-		do: [ self fileOutTimeStamp.
+		with: [ self fileOutTimeStamp.
 			self fileOutNameSpace.
 			self fileOutClassDefinitions.
 			self fileOutMethods.
-			self fileOutInitializers ] ]
+			self fileOutInitializers ] .
+		writer write.]
 		ensure: [ stream close ]
 ]
 
 { #category : #accessing }
 Pharo2VW >> externalNamespaces [
-	^ externalNamespaces ifNil: [ externalNamespaces := #() ].
+	^ externalNamespaces
 ]
 
 { #category : #accessing }
@@ -110,31 +107,28 @@ Pharo2VW >> externalNamespaces: array [
 
 { #category : #export }
 Pharo2VW >> fileOutClassCommentForClass: aClass [
-	
-	aClass hasComment ifFalse: [^self].
-	stream cr.
-	self tag: 'comment' do: [
-		self tag: 'class-id' with: (self fullyQualifiedClassNameFor: aClass).
-		self tag: 'body' with:  (((aClass comment asString copyReplaceAll: '&' with: '&amp;') copyReplaceAll: '<' with:  '&lt;' ) copyReplaceAll:  '>' with:  '&gt;').
-	]
+	aClass hasComment
+		ifFalse: [ ^ self ].
+	writer
+		tag: 'comment'
+		with: [ writer tag: 'class-id' with: (self fullyQualifiedClassNameFor: aClass).
+			writer tag: 'body' with: aClass comment asXMLEscapedString ]
 ]
 
 { #category : #export }
-Pharo2VW >> fileOutClassDefinition: aClass [
-	stream cr.
-	
-	self tag: 'class' do: [
-		self tag: 'name' with: aClass name.
-		self tag: 'environment' with: self environment.
-		self tag: 'super' with: (self fullyQualifiedClassNameFor: aClass superclass).
-		self tag: 'private' with: 'false'.
-		self tag: 'indexed-type' with: (self mapType: aClass typeOfClass).
-		self tag: 'inst-vars' with: aClass instanceVariablesString.
-		self tag: 'class-inst-vars' with: aClass class instanceVariablesString.
-		self tag: 'imports' with: ''.
-		self tag: 'category' with: aClass category.
-		self tag: 'attributes' do: [
-			self tag: 'package' with: (self packageNameForClass: aClass).
+Pharo2VW >> fileOutClassDefinition: aClass [	
+	writer tag: 'class' with: [
+		writer tag: 'name' with: aClass name.
+		writer tag: 'environment' with: self environment.
+		writer tag: 'super' with: (self fullyQualifiedClassNameFor: aClass superclass).
+		writer tag: 'private' with: 'false'.
+		writer tag: 'indexed-type' with: (self mapType: aClass typeOfClass).
+		writer tag: 'inst-vars' with: aClass instanceVariablesString.
+		writer tag: 'class-inst-vars' with: aClass class instanceVariablesString.
+		writer tag: 'imports' with: ''.
+		writer tag: 'category' with: aClass category.
+		writer tag: 'attributes' with: [
+			writer tag: 'package' with: (self packageNameForClass: aClass).
 		]
 	].
 
@@ -145,32 +139,30 @@ Pharo2VW >> fileOutClassDefinition: aClass [
 
 { #category : #export }
 Pharo2VW >> fileOutClassDefinitions [
-	(Class superclassOrder: self classes)
+	((Class superclassOrder: self classes) select: #isClass)
 		do: [:ea | self fileOutClassDefinition: ea]
 		displayingProgress: 'Filing out classes...'
 ]
 
 { #category : #export }
-Pharo2VW >> fileOutClassVariable: aSymbol class: aClass [
-	stream cr; cr.
-	
-	self tag: 'shared-variable' do: [
-		self tag: 'name' with: aSymbol.
-		self tag: 'environment' with: (self fullyQualifiedClassNameFor: aClass).
-		self tag: 'private' with: 'false'.
-		self tag: 'constant' with: 'false'.
-		self tag: 'category' with: 'class variables'.
-		self tag: 'initializer' with: 'nil'.
-		self tag: 'attributes' do: [
-			self tag: 'package' with: (self packageNameForClass: aClass).
+Pharo2VW >> fileOutClassVariable: aSymbol class: aClass [	
+	writer tag: 'shared-variable' with: [
+		writer tag: 'name' with: aSymbol.
+		writer tag: 'environment' with: (self fullyQualifiedClassNameFor: aClass).
+		writer tag: 'private' with: 'false'.
+		writer tag: 'constant' with: 'false'.
+		writer tag: 'category' with: 'class variables'.
+		writer tag: 'initializer' with: 'nil'.
+		writer tag: 'attributes' with: [
+			writer tag: 'package' with: (self packageNameForClass: aClass).
 		]
 	]
 ]
 
 { #category : #export }
 Pharo2VW >> fileOutInitializerForClass: aClass [
-	self tag: 'initialize' do: [
-		self tag: 'class-id' with: (self fullyQualifiedClassNameFor: aClass)
+	writer tag: 'initialize' with: [
+		writer tag: 'class-id' with: (self fullyQualifiedClassNameFor: aClass)
 	]
 ]
 
@@ -182,11 +174,11 @@ Pharo2VW >> fileOutInitializers [
 
 { #category : #export }
 Pharo2VW >> fileOutMethod: aMethodReference [
-	self tag: 'methods' do: [
-		self
+	writer tag: 'methods' with: [
+		writer
 			tag: 'class-id' 
 			with: (self fullyQualifiedClassNameFor: aMethodReference realClass).
-		self tag: 'category' with: (self categoryForMethod: aMethodReference).
+		writer tag: 'category' with: (self categoryForMethod: aMethodReference).
 		self fileOutMethodBody: aMethodReference.
 	]
 ]
@@ -199,19 +191,11 @@ Pharo2VW >> fileOutMethodBody: aMethodReference [
 	"See if an extension method includes a reference to some of our classes"
 	ref := self getClassNamesUsedIn: aMethodReference.
 	"Prefix the class names with the target namespace"
-	ref do: 
-		[:className |
-		methodString := methodString
-				copyReplaceTokens: className 
-				with: self environment , '.' , className].
-
-	stream
-		nextPutAll: '<body package="';
-		nextPutAll: (self packageNameForMethod: aMethodReference);
-		nextPutAll: '">';
-		nextPutAll: (((methodString copyReplaceAll: '&' with: '&amp;') copyReplaceAll: '<' with:  '&lt;' ) copyReplaceAll:  '>' with:  '&gt;');
-		nextPutAll: '</body>';
-		cr
+	ref do: [ :className | methodString := methodString copyReplaceTokens: className with: self environment , '.' , className ].
+	writer
+		tag: 'body'
+		attributes: {('package' -> (self packageNameForMethod: aMethodReference))} asDictionary
+		with: methodString asXMLEscapedString
 ]
 
 { #category : #export }
@@ -225,24 +209,19 @@ Pharo2VW >> fileOutMethods [
 
 { #category : #export }
 Pharo2VW >> fileOutNameSpace [
-
-	self tag: 'name-space' do: [
-		self tag: 'name' with: self environment.
-		self tag: 'environment' with: 'Smalltalk'.
-		self tag: 'private' with: 'false'.
-		self tag: 'imports' do: [
-			stream nextPutAll: self nameSpaceImports; cr.
-		].
-		self tag: 'category' with: self environment.
-		self tag: 'attributes' do: [
-			self tag: 'package' with: self environment.
-		].
-	]
+	writer
+		tag: 'name-space'
+		with: [ writer tag: 'name' with: self environment.
+			writer tag: 'environment' with: 'Smalltalk'.
+			writer tag: 'private' with: 'false'.
+			writer tag: 'imports' with: self nameSpaceImports ].
+	writer tag: 'category' with: self environment.
+	writer tag: 'attributes' with: [ writer tag: 'package' with: self environment ]
 ]
 
 { #category : #export }
 Pharo2VW >> fileOutTimeStamp [
-	self tag: 'time-stamp'
+	writer tag: 'time-stamp'
 		with: 'From ', Smalltalk version, ' on ', Date today printString, ' at ', Time now printString.
 ]
 
