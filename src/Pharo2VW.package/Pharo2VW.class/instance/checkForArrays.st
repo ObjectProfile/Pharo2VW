@@ -1,3 +1,0 @@
-public
-checkForArrays
-	checkForArrays := true

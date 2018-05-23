@@ -1,1 +1,0 @@
-I am pharo exporter for visual works, please check my examples in order to know how to use me
