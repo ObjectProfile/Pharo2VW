@@ -10,13 +10,16 @@ BaselineOfPharo2VW >> baseline: spec [
 	spec
 		for: #common
 		do: [ spec
-				package: #Pharo2VW with: [ spec requires: #('XMLWriter' 'Pharo2VW') ];
+				package: #Pharo2VW with: [ spec requires: #('XMLWriter') ];
 				package: #'Pharo2VW-Tests' with: [ spec requires: #('FAMIX' 'Pharo2VW') ];
 				project: 'FAMIX'
-					with: [ spec repository: 'http://smalltalkhub.com/mc/Moose/Moose/main'.
-					spec loads: #('Resources') ];
+					with: [ spec repository: 'http://smalltalkhub.com/mc/Moose/Famix/main'.
+					spec loads: #('Resources').
+					spec version: #bleedingEdge.
+					spec className: 'ConfigurationOfFamix' ];
 				project: 'XMLWriter'
-					with: [ spec repository: 'http://smalltalkhub.com/mc/PharoExtras/XMLWriter/main' ].
+					with: [ spec repository: 'http://smalltalkhub.com/mc/PharoExtras/XMLWriter/main'.
+					spec className: 'ConfigurationOfXMLWriter' ].
 			spec
 				group: 'default' with: #('core' 'tests');
 				group: 'core' with: #('Pharo2VW');
