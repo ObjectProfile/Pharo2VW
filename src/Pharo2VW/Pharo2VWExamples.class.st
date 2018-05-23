@@ -4,7 +4,7 @@ I have examples of how to use the Pharo2VWExporter
 Class {
 	#name : #Pharo2VWExamples,
 	#superclass : #Object,
-	#category : #'Pharo2VW-Examples'
+	#category : 'Pharo2VW-Examples'
 }
 
 { #category : #examples }

@@ -16,7 +16,7 @@ Class {
 		'checkForArrays',
 		'showMethodsWithArray'
 	],
-	#category : #'Pharo2VW-Core'
+	#category : 'Pharo2VW-Core'
 }
 
 { #category : #'instance creation' }
