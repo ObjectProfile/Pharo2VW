@@ -1,0 +1,13 @@
+{
+	"commentStamp" : "akevalion 3/9/2018 18:07",
+	"super" : "Object",
+	"category" : "Pharo2VW-Core",
+	"classinstvars" : [ ],
+	"pools" : [ ],
+	"classvars" : [
+		"data"
+	],
+	"instvars" : [ ],
+	"name" : "EvoClass",
+	"type" : "normal"
+}

@@ -1,0 +1,1 @@
+I have examples of how to use the Pharo2VWExporter
