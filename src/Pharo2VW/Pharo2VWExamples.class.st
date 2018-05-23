@@ -8,11 +8,11 @@ Class {
 }
 
 { #category : #examples }
-Pharo2VWExamples >> exampleExportPacakgeBasic [
+Pharo2VWExamples >> exampleExportPackageBasic [
 	"This creates a new files MySpaceInVW.st a file with all the sourcecode of the packages"
 	Pharo2VW exporter
 		environment: 'MySpaceInVW';
-		package: 'Pharo2VW';
+		package: 'Moose-TestResources-LAN';
 		export.
 ]
 

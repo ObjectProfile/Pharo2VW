@@ -8,8 +8,13 @@ Class {
 }
 
 { #category : #running }
+Pharo2VWExporterTest >> exportedFile [
+	^ 'MySpaceInVW.st' asFileReference
+]
+
+{ #category : #running }
 Pharo2VWExporterTest >> tearDown [
-	'MySpaceInVW.st' asFileReference ensureDelete
+	self exportedFile ensureDelete
 ]
 
 { #category : #tests }
@@ -28,7 +33,8 @@ Pharo2VWExporterTest >> testBasicExport [
 Pharo2VWExporterTest >> testExampleExportPacakgeBasic [
 	| inst |
 	inst := Pharo2VWExamples new.
-	inst exampleExportPacakgeBasic.
+	inst exampleExportPackageBasic.
+	self exportedFile contents.
 	self assert: false
 ]
 
