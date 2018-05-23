@@ -2,16 +2,19 @@ public
 export
 	| filename |
 	self checkForBadArraysIfNecessary.
-	filename := self directory / (self environment, '.st').
-	filename exists ifTrue: [ filename delete ].
+	filename := self directory / (self environment , '.st').
+	filename exists
+		ifTrue: [ filename delete ].
 	stream := filename writeStream.
-	[ 
-		stream nextPutAll: '<?xml version="1.0"?>';cr;cr.
-		self tag: 'st-source' do: [ 
-			self fileOutTimeStamp.
+	[ stream
+		nextPutAll: '<?xml version="1.0"?>';
+		cr;
+		cr.
+	self
+		tag: 'st-source'
+		do: [ self fileOutTimeStamp.
 			self fileOutNameSpace.
 			self fileOutClassDefinitions.
 			self fileOutMethods.
-			self fileOutInitializers. ].
-		stream close.
-	] ensure: [ stream close ].
+			self fileOutInitializers ] ]
+		ensure: [ stream close ]

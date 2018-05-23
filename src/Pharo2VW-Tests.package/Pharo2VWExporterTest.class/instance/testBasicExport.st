@@ -1,5 +1,5 @@
 tests
-test02Basic
+testBasicExport
 	| inst |
 	inst := Pharo2VW exporter.
 	self

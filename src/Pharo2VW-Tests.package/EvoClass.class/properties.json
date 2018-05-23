@@ -1,7 +1,7 @@
 {
 	"commentStamp" : "akevalion 3/9/2018 18:07",
 	"super" : "Object",
-	"category" : "Pharo2VW-Core",
+	"category" : "Pharo2VW-Tests",
 	"classinstvars" : [ ],
 	"pools" : [ ],
 	"classvars" : [

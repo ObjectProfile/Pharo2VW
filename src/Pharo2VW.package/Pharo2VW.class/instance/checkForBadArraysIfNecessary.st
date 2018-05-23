@@ -1,4 +1,4 @@
-testing
+checking
 checkForBadArraysIfNecessary
 	| list  |
 	self shouldCheckForArrays ifFalse: [ ^ self ].
