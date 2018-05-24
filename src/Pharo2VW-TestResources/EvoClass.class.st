@@ -7,7 +7,7 @@ Class {
 	#classVars : [
 		'data'
 	],
-	#category : 'Pharo2VW-Tests'
+	#category : #'Pharo2VW-TestResources'
 }
 
 { #category : #initialization }
@@ -18,4 +18,9 @@ EvoClass class >> initialize [
 { #category : #accessing }
 EvoClass >> data [
 	^ data
+]
+
+{ #category : #accessing }
+EvoClass >> methodWithCurlyBraces [
+	 { #RGMetaclassDefinition . { 'Foo' asSymbol . self class name asSymbol } }
 ]

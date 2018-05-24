@@ -186,6 +186,7 @@ Pharo2VW >> fileOutMethod: aMethodReference [
 { #category : #export }
 Pharo2VW >> fileOutMethodBody: aMethodReference [
 	| ref methodString |
+	self convertCurlyBraces: aMethodReference halt.
 	self halt.
 	methodString := self prettyPrint: aMethodReference sourceCode asString.
 

@@ -46,6 +46,20 @@ Pharo2VWExporterTest >> testBasicExport [
 ]
 
 { #category : #tests }
+Pharo2VWExporterTest >> testCurlyBracesConversion [
+	| inst |
+	inst := Pharo2VW exporter
+		environment: 'EvoClass';
+		package: 'Pharo2VW-Tests-Classes';
+		export.
+	self
+		assert: inst externalNamespaces class equals: Array;
+		assert: inst externalNamespaces isEmpty;
+		assert: inst directory equals: FileSystem disk workingDirectory;
+		assert: inst environment isNil
+]
+
+{ #category : #tests }
 Pharo2VWExporterTest >> testExampleExportPackageBasicClasses [
 	| inst |
 	inst := Pharo2VWExamples new.
