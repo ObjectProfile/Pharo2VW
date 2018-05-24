@@ -186,6 +186,7 @@ Pharo2VW >> fileOutMethod: aMethodReference [
 { #category : #export }
 Pharo2VW >> fileOutMethodBody: aMethodReference [
 	| ref methodString |
+	self halt.
 	methodString := self prettyPrint: aMethodReference sourceCode asString.
 
 	"See if an extension method includes a reference to some of our classes"
@@ -436,33 +437,4 @@ Pharo2VW >> showMethodsWithArray [
 { #category : #accessing }
 Pharo2VW >> showMethodsWithArray: aBool [
 	showMethodsWithArray := aBool
-]
-
-{ #category : #tags }
-Pharo2VW >> tag: aString do: aBlock [
-	stream
-		nextPutAll: '<';
-		nextPutAll: aString;
-		nextPutAll: '>';
-		cr.
-		
-	aBlock value.
-	stream
-		nextPutAll: '</';
-		nextPutAll: aString;
-		nextPutAll: '>';
-		cr.
-		
-]
-
-{ #category : #tags }
-Pharo2VW >> tag: aString with: contentString [
-	stream nextPutAll: '<';
-		nextPutAll: aString;
-		nextPutAll: '>';
-		nextPutAll: contentString;
-		nextPutAll: '</';
-		nextPutAll: aString;
-		nextPutAll: '>';
-		cr.
 ]
