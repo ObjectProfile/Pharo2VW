@@ -49,6 +49,11 @@ Pharo2VW >> checkForBadArraysIfNecessary [
 		ifFalse: [ self error: 'You have: ', list size asString, ' methods with {} please check' ].
 ]
 
+{ #category : #export }
+Pharo2VW >> classNameMapper [
+	^ Pharo2VWClassNameMapper new
+]
+
 { #category : #accessing }
 Pharo2VW >> classes [
 	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] ]
@@ -60,6 +65,11 @@ Pharo2VW >> convertCurlyBraces: aCompiledMethod [
 	ast := aCompiledMethod copy ast.
 	Pharo2VWConvertCurlyBraces new visitNode: ast.
 	^ BISimpleFormatter format: ast
+]
+
+{ #category : #export }
+Pharo2VW >> convertToVisualworksName: aClass [
+	^ self classNameMapper on: aClass
 ]
 
 { #category : #accessing }
@@ -241,7 +251,7 @@ Pharo2VW >> fullyQualifiedClassNameFor: aClass [
 		ifTrue: [self environment, '.', aClass name]
 		ifFalse: [ | pkg |
 			pkg := self packageFor: aClass.
-			pkg ifNil: [ aClass visualworksName]
+			pkg ifNil: [ self convertToVisualworksName: aClass ]
 			ifNotNil: [ pkg name, '.', aClass name ]
 			].
 ]

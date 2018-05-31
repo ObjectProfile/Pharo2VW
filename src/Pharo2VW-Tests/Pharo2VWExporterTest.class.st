@@ -47,8 +47,8 @@ Pharo2VWExporterTest >> testBasicExport [
 
 { #category : #tests }
 Pharo2VWExporterTest >> testCurlyBracesConversion [
-	| inst methodsContents curlyBraced |
-	inst := Pharo2VW exporter
+	| methodsContents curlyBraced |
+	Pharo2VW exporter
 		environment: 'MySpaceInVW';
 		package: 'Pharo2VW-TestResources';
 		export.
@@ -66,6 +66,16 @@ Pharo2VWExporterTest >> testCurlyBracesConversion [
            at: 2 put: self class name asSymbol;
            yourself);
      yourself' replaceAll: Character cr with: Character lf)
+]
+
+{ #category : #tests }
+Pharo2VWExporterTest >> testExampleExportLan [
+	Pharo2VW exporter
+		environment: 'MySpaceInVW';
+		package: 'Moose-TestResources-LAN';
+		export.
+	self parseGeneratedXML.
+	self assert: false
 ]
 
 { #category : #tests }

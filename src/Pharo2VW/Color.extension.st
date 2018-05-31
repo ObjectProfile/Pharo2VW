@@ -1,6 +1,6 @@
 Extension { #name : #Color }
 
 { #category : #'*Pharo2VW-Core' }
-Color class >> visualworksName [
-	^ 'ColorValue'
+Color class >> visualworksNameOn: mapper [
+	^ mapper nameForClass: self
 ]
