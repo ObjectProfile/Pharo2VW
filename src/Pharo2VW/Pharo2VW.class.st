@@ -54,6 +54,14 @@ Pharo2VW >> classes [
 	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] ]
 ]
 
+{ #category : #'as yet unclassified' }
+Pharo2VW >> convertCurlyBraces: aCompiledMethod [
+	| ast |
+	ast := aCompiledMethod copy ast.
+	Pharo2VWConvertCurlyBraces new visitNode: ast.
+	^ BISimpleFormatter format: ast
+]
+
 { #category : #accessing }
 Pharo2VW >> directory [
 	^ directory
@@ -185,10 +193,9 @@ Pharo2VW >> fileOutMethod: aMethodReference [
 
 { #category : #export }
 Pharo2VW >> fileOutMethodBody: aMethodReference [
-	| ref methodString |
-	self convertCurlyBraces: aMethodReference halt.
-	self halt.
-	methodString := self prettyPrint: aMethodReference sourceCode asString.
+	| ref methodString sourceCode |
+	sourceCode := self convertCurlyBraces: aMethodReference. "This conversion does not add new dependencies (except for Array , #new: #at:put: and #yourself)"
+	methodString := self prettyPrint: sourceCode asString.
 
 	"See if an extension method includes a reference to some of our classes"
 	ref := self getClassNamesUsedIn: aMethodReference.

@@ -47,16 +47,25 @@ Pharo2VWExporterTest >> testBasicExport [
 
 { #category : #tests }
 Pharo2VWExporterTest >> testCurlyBracesConversion [
-	| inst |
+	| inst methodsContents curlyBraced |
 	inst := Pharo2VW exporter
-		environment: 'EvoClass';
-		package: 'Pharo2VW-Tests-Classes';
+		environment: 'MySpaceInVW';
+		package: 'Pharo2VW-TestResources';
 		export.
+	self parseGeneratedXML.
+	methodsContents := self xPathFor: '//methods/body'.
+	curlyBraced := methodsContents detect: [ :node | node nodes first beginsWith: 'methodWithCurlyBraces' ].
 	self
-		assert: inst externalNamespaces class equals: Array;
-		assert: inst externalNamespaces isEmpty;
-		assert: inst directory equals: FileSystem disk workingDirectory;
-		assert: inst environment isNil
+		assert: curlyBraced nodes first asString
+		equals:
+			('methodWithCurlyBraces
+  (Array new: 2)
+     at: 1 put: #RGMetaclassDefinition;
+     at: 2 put: ((Array new: 2)
+           at: 1 put: ''Foo'' asSymbol;
+           at: 2 put: self class name asSymbol;
+           yourself);
+     yourself' replaceAll: Character cr with: Character lf)
 ]
 
 { #category : #tests }
