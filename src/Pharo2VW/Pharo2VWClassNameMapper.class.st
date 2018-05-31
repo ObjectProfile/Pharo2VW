@@ -17,13 +17,13 @@ Pharo2VWClassNameMapper >> classNameMapping [
 ]
 
 { #category : #testing }
-Pharo2VWClassNameMapper >> isSeasideClass [
-	^ (#('WA' 'SU' 'CT') includes: (self name copyFrom: 1 to: 2))
+Pharo2VWClassNameMapper >> isSeasideClass: aClass [
+	^ (#('WA' 'SU' 'CT') includes: (aClass name copyFrom: 1 to: 2))
 ]
 
 { #category : #'double dispatch' }
 Pharo2VWClassNameMapper >> nameForBehaviorClass: class [
-	^ self isSeasideClass
+	^ (self isSeasideClass: class)
 		ifTrue: [ self nameForSeaside: class ]
 		ifFalse: [ class name ]
 ]
@@ -35,7 +35,7 @@ Pharo2VWClassNameMapper >> nameForClass: class [
 
 { #category : #'double dispatch' }
 Pharo2VWClassNameMapper >> nameForObjectClass: class [
-	self isSeasideClass
+	(self isSeasideClass: class)
 		ifTrue: [ ^ self nameForSeaside: class ].
 	^ self nameForClass: class
 ]

@@ -12,8 +12,6 @@ Class {
 		'classes',
 		'methods',
 		'methodsBlacklist',
-		'checkForArrays',
-		'showMethodsWithArray',
 		'writer'
 	],
 	#category : #'Pharo2VW-Core'
@@ -27,26 +25,6 @@ Pharo2VW class >> exporter [
 { #category : #'export helpers' }
 Pharo2VW >> categoryForMethod: method [
 	^ method category ifNil: [ 'as yet unclassified' ]
-]
-
-{ #category : #public }
-Pharo2VW >> checkForArrays [
-	checkForArrays := true
-]
-
-{ #category : #checking }
-Pharo2VW >> checkForBadArraysIfNecessary [
-	| list  |
-	self shouldCheckForArrays ifFalse: [ ^ self ].
-	list := OrderedCollection new.
-	self methods do: [ :met | 
-		(self methodsBlacklist includes: met) ifFalse: [  
-			(self hasArray: met) ifTrue: [ list add: met ] ] ]
-		displayingProgress: 'Checking methods'.
-	list isEmpty ifTrue: [ ^ self ]. 
-	self showMethodsWithArray 
-		ifTrue: [ list do: [ :met | met browse ]. self error: 'Please check this methods!' ]
-		ifFalse: [ self error: 'You have: ', list size asString, ' methods with {} please check' ].
 ]
 
 { #category : #export }
@@ -63,7 +41,7 @@ Pharo2VW >> classes [
 Pharo2VW >> convertCurlyBraces: aCompiledMethod [
 	| ast |
 	ast := aCompiledMethod copy ast.
-	Pharo2VWConvertCurlyBraces new visitNode: ast.
+	Pharo2VWCurlyBracesConvertor new visitNode: ast.
 	^ BISimpleFormatter format: ast
 ]
 
@@ -95,12 +73,13 @@ Pharo2VW >> environment: aString [
 { #category : #public }
 Pharo2VW >> export [
 	| filename stream |
-	self checkForBadArraysIfNecessary.
 	filename := self directory / (self environment , '.st').
 	filename exists
 		ifTrue: [ filename delete ].
 	stream := filename writeStream.
-	writer := (XMLWriter on: stream) enablePrettyPrinting ; yourself.
+	writer := (XMLWriter on: stream)
+		enablePrettyPrinting;
+		yourself.
 	[ writer xml.
 	writer
 		tag: 'st-source'
@@ -108,8 +87,8 @@ Pharo2VW >> export [
 			self fileOutNameSpace.
 			self fileOutClassDefinitions.
 			self fileOutMethods.
-			self fileOutInitializers ] .
-		writer write.]
+			self fileOutInitializers ].
+	writer write ]
 		ensure: [ stream close ]
 ]
 
@@ -204,7 +183,7 @@ Pharo2VW >> fileOutMethod: aMethodReference [
 { #category : #export }
 Pharo2VW >> fileOutMethodBody: aMethodReference [
 	| ref methodString sourceCode |
-	sourceCode := self convertCurlyBraces: aMethodReference. "This conversion does not add new dependencies (except for Array , #new: #at:put: and #yourself)"
+	sourceCode := self convertCurlyBraces: aMethodReference. "This conversion does not add new dependencies (except for Array , #new: #at:put: and #yourself. Which are already existing in VW)"
 	methodString := self prettyPrint: sourceCode asString.
 
 	"See if an extension method includes a reference to some of our classes"
@@ -272,22 +251,6 @@ Pharo2VW >> getClassNamesUsedIn: aMethodReference [
 ]
 
 { #category : #testing }
-Pharo2VW >> hasArray: met [
-	^ self hasRBArray: met ast.
-	
-]
-
-{ #category : #testing }
-Pharo2VW >> hasRBArray: node [
-	node class = RBArrayNode ifTrue: [ ^ true ].
-	node children do: [ :child |
-		(self hasRBArray: child) ifTrue: [ ^ true ].
-		 ].
-	^ false.
-	
-]
-
-{ #category : #testing }
 Pharo2VW >> includesClass: class [
 	| c |
 	c := class isMeta ifTrue: [ class soleInstance ] ifFalse: [ class ].
@@ -300,8 +263,7 @@ Pharo2VW >> initialize [
 	super initialize.
 	directory := FileSystem disk workingDirectory.
 	environment := nil.
-	externalNamespaces := #().
-	checkForArrays := showMethodsWithArray := false
+	externalNamespaces := #()
 ]
 
 { #category : #export }
@@ -344,28 +306,30 @@ Pharo2VW >> mustBeQualified: aClass [
 
 { #category : #'export helpers' }
 Pharo2VW >> nameSpaceImports [
-	| imports result |
+	| imports |
 	imports := Set with: #Smalltalk.
 	imports addAll: self externalNamespaces.
-	self classes do: 
-		[ :ea | 
-		(ea name copyFrom: 1 to: 2) = 'WA' ifTrue: [ imports add: #Seaside ].
-		(ea superclass name copyFrom: 1 to: 2) = 'WA' ifTrue: [ imports add: #Seaside ] ].
-	imports remove: self environment asSymbol ifAbsent:["it was not there"].
-	result := String new writeStream.
-	imports do: 
-		[ :ea | 
-		result
-			nextPutAll: 'private ';
-			nextPutAll: ea;
-			nextPutAll: '.*' ]
-		separatedBy: [ result space ].
-	^ result contents
+	self classes
+		do: [ :ea | 
+			(ea name copyFrom: 1 to: 2) = 'WA'
+				ifTrue: [ imports add: #Seaside ].
+			(ea superclass name copyFrom: 1 to: 2) = 'WA'
+				ifTrue: [ imports add: #Seaside ] ].
+	imports remove: self environment asSymbol ifAbsent: [ "it was not there" ].
+	^ String
+		streamContents: [ :stream | 
+			imports
+				do: [ :ea | 
+					stream
+						nextPutAll: 'private ';
+						nextPutAll: ea;
+						nextPutAll: '.*' ]
+				separatedBy: [ stream space ] ]
 ]
 
 { #category : #public }
 Pharo2VW >> package: aString [
-	self packages: (Array with: aString)
+	self packages: {aString}
 ]
 
 { #category : #'export helpers' }
@@ -440,19 +404,4 @@ Pharo2VW >> prettyPrint: aString [
 											previousChar := c]]]].
 		
 
-]
-
-{ #category : #testing }
-Pharo2VW >> shouldCheckForArrays [
-	^ checkForArrays
-]
-
-{ #category : #testing }
-Pharo2VW >> showMethodsWithArray [
-	^ showMethodsWithArray
-]
-
-{ #category : #accessing }
-Pharo2VW >> showMethodsWithArray: aBool [
-	showMethodsWithArray := aBool
 ]

@@ -1,11 +1,14 @@
+"
+I am an AST visitor that convert the {} collection into static arrays
+"
 Class {
-	#name : #Pharo2VWConvertCurlyBraces,
+	#name : #Pharo2VWCurlyBracesConvertor,
 	#superclass : #RBProgramNodeVisitor,
 	#category : #'Pharo2VW-Core'
 }
 
 { #category : #visiting }
-Pharo2VWConvertCurlyBraces >> visitArrayNode: anArrayNode [
+Pharo2VWCurlyBracesConvertor >> visitArrayNode: anArrayNode [
 	| rootNode arraySize receiverNode yourselfNode messages |
 	arraySize := anArrayNode statements size.
 	receiverNode := RBMessageNode receiver: (RBGlobalNode named: #Array) selector: #new: arguments: {(RBLiteralValueNode value: arraySize)}.
