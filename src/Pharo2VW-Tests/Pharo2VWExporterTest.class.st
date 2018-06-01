@@ -4,7 +4,10 @@ A Pharo2VWExporterTest is a test class for testing the behavior of Pharo2VWExpor
 Class {
 	#name : #Pharo2VWExporterTest,
 	#superclass : #TestCase,
-	#category : 'Pharo2VW-Tests'
+	#instVars : [
+		'rootPath'
+	],
+	#category : #'Pharo2VW-Tests'
 }
 
 { #category : #running }
@@ -138,7 +141,7 @@ Pharo2VWExporterTest >> testExampleExportPackageBasicMethods [
 			((RPackageOrganizer default packageNamed: 'Moose-TestResources-LAN') classes
 				select: #isClass
 				thenCollect: #methods) flatten size.
-	rootPath := '/st-source/methods[1]/'.
+	rootPath := '/st-source/methods[1]/'. 
 	self
 		testValues:
 			{('class-id' -> 'MySpaceInVW.LANAbstractDestinationAddress').
