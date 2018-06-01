@@ -4,11 +4,7 @@ A Pharo2VWExporterTest is a test class for testing the behavior of Pharo2VWExpor
 Class {
 	#name : #Pharo2VWExporterTest,
 	#superclass : #TestCase,
-	#instVars : [
-		'parsedXML',
-		'rootPath'
-	],
-	#category : #'Pharo2VW-Tests'
+	#category : 'Pharo2VW-Tests'
 }
 
 { #category : #running }
