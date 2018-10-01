@@ -21,7 +21,7 @@ BaselineOfPharo2VW >> baseline: spec [
 				project: 'XMLWriter'
 					with: [ spec repository: 'http://smalltalkhub.com/mc/PharoExtras/XMLWriter/main'.
 					spec className: 'ConfigurationOfXMLWriter' ];
-				project: 'XMLWriter'
+				project: 'XMLParser'
 					with: [ spec repository: 'http://smalltalkhub.com/mc/PharoExtras/XMLParser/main'.
 					spec className: 'ConfigurationOfXMLParser' ];
 				project: 'XPath'
