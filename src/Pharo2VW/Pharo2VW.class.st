@@ -6,13 +6,14 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'directory',
-		'environment',
+		'namespace',
 		'externalNamespaces',
 		'packagesTags',
 		'classes',
 		'methods',
 		'methodsBlacklist',
-		'writer'
+		'writer',
+		'mapper'
 	],
 	#category : #'Pharo2VW-Core'
 }
@@ -27,9 +28,14 @@ Pharo2VW >> categoryForMethod: method [
 	^ method category ifNil: [ 'as yet unclassified' ]
 ]
 
-{ #category : #export }
+{ #category : #accessing }
 Pharo2VW >> classNameMapper [
-	^ Pharo2VWClassNameMapper new
+	^ mapper ifNil: [ mapper := Pharo2VWClassNameMapper new]
+]
+
+{ #category : #accessing }
+Pharo2VW >> classNameMapperDo: block [
+	block value: self classNameMapper 
 ]
 
 { #category : #accessing }
@@ -37,7 +43,7 @@ Pharo2VW >> classes [
 	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] ]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'export helpers' }
 Pharo2VW >> convertCurlyBraces: aCompiledMethod [
 	| ast |
 	ast := aCompiledMethod copy ast.
@@ -45,9 +51,9 @@ Pharo2VW >> convertCurlyBraces: aCompiledMethod [
 	^ BISimpleFormatter format: ast
 ]
 
-{ #category : #export }
+{ #category : #'export helpers' }
 Pharo2VW >> convertToVisualworksName: aClass [
-	^ self classNameMapper on: aClass
+	^ self classNameMapper fullNameForClass: aClass
 ]
 
 { #category : #accessing }
@@ -60,20 +66,11 @@ Pharo2VW >> directory: aNewDirectory [
 	directory := aNewDirectory
 ]
 
-{ #category : #accessing }
-Pharo2VW >> environment [
-	^ environment
-]
-
-{ #category : #accessing }
-Pharo2VW >> environment: aString [
-	environment := aString
-]
-
 { #category : #public }
 Pharo2VW >> export [
 	| filename stream |
-	filename := self directory / (self environment , '.st').
+	self loadXMLIfNecessary.
+	filename := self directory / (self namespace , '.st').
 	filename exists
 		ifTrue: [ filename delete ].
 	stream := filename writeStream.
@@ -115,8 +112,8 @@ Pharo2VW >> fileOutClassCommentForClass: aClass [
 { #category : #export }
 Pharo2VW >> fileOutClassDefinition: aClass [	
 	writer tag: 'class' with: [
-		writer tag: 'name' with: aClass name.
-		writer tag: 'environment' with: self environment.
+		writer tag: 'name' with: (self classNameMapper on: aClass).
+		writer tag: 'environment' with: self namespace.
 		writer tag: 'super' with: (self fullyQualifiedClassNameFor: aClass superclass).
 		writer tag: 'private' with: 'false'.
 		writer tag: 'indexed-type' with: (self mapType: aClass typeOfClass).
@@ -129,7 +126,8 @@ Pharo2VW >> fileOutClassDefinition: aClass [
 		]
 	].
 
-	aClass classPool keys do: [:ea | self fileOutClassVariable: ea class: aClass].
+	aClass classPool keys do: [:ea | 
+		self fileOutClassVariable: ea class: aClass].
 	
 	self fileOutClassCommentForClass: aClass
 ]
@@ -209,12 +207,12 @@ Pharo2VW >> fileOutMethods [
 Pharo2VW >> fileOutNameSpace [
 	writer
 		tag: 'name-space'
-		with: [ writer tag: 'name' with: self environment.
+		with: [ writer tag: 'name' with: self namespace.
 			writer tag: 'environment' with: 'Smalltalk'.
 			writer tag: 'private' with: 'false'.
 			writer tag: 'imports' with: self nameSpaceImports ].
-	writer tag: 'category' with: self environment.
-	writer tag: 'attributes' with: [ writer tag: 'package' with: self environment ]
+	writer tag: 'category' with: self namespace.
+	writer tag: 'attributes' with: [ writer tag: 'package' with: self namespace ]
 ]
 
 { #category : #export }
@@ -225,9 +223,9 @@ Pharo2VW >> fileOutTimeStamp [
 
 { #category : #export }
 Pharo2VW >> fullyQualifiedClassNameFor: aClass [
-
+	aClass ifNil: [ ^ 'SharedPool' ].
 	^ (self includesClass: aClass)
-		ifTrue: [self environment, '.', aClass name]
+		ifTrue: [self namespace, '.', aClass name]
 		ifFalse: [ | pkg |
 			pkg := self packageFor: aClass.
 			pkg ifNil: [ self convertToVisualworksName: aClass ]
@@ -236,18 +234,19 @@ Pharo2VW >> fullyQualifiedClassNameFor: aClass [
 ]
 
 { #category : #export }
-Pharo2VW >> getClassNamesUsedIn: aMethodReference [ 
+Pharo2VW >> getClassNamesUsedIn: aMethodReference [
 	"Answers the names of those of our classes that are referenced
 	an extension method"
-	(self classes includes: aMethodReference realClass theNonMetaClass)
-		ifTrue: ["Not an extension method"
-			^ #()].
+
+	(self classes includes: aMethodReference realClass instanceSide)
+		ifTrue: [ "Not an extension method" ^ #() ].
 	^ (aMethodReference literals
-		select: [:lit | lit class == GlobalVariable
-				and: [lit value isBehavior
-						and: [lit key == lit value name
-								and: [self mustBeQualified: lit value]]]])
-		collect: [:lit | lit key]
+		select: [ :lit | 
+			lit class == GlobalVariable
+				and: [ lit value isBehavior
+						and:
+							[ lit key == lit value name and: [ self mustBeQualified: lit value ] ] ] ])
+		collect: [ :lit | lit key ]
 ]
 
 { #category : #testing }
@@ -262,8 +261,25 @@ Pharo2VW >> includesClass: class [
 Pharo2VW >> initialize [
 	super initialize.
 	directory := FileSystem disk workingDirectory.
-	environment := nil.
+	namespace := nil.
 	externalNamespaces := #()
+]
+
+{ #category : #'export helpers' }
+Pharo2VW >> loadXMLIfNecessary [
+	(RPackageOrganizer default includesPackageNamed: 'XML-Parser')
+		ifTrue: [ ^ self ].
+	Metacello new
+		smalltalkhubUser: 'Pharo' project: 'MetaRepoForPharo70';
+		configuration: 'XMLParser';
+		version: #stable;
+		load.
+	
+	Metacello new
+		smalltalkhubUser: 'Pharo' project: 'MetaRepoForPharo70';
+		configuration: 'XPath';
+		version: #stable;
+		load.
 ]
 
 { #category : #export }
@@ -281,7 +297,8 @@ Pharo2VW >> methods [
 		self packagesTags do: [ :pkg | 
 			methods addAll: (pkg package extensionsForTag: pkg).
 			pkg classes do: [ :cls | 
-				methods addAll: cls class methods.
+				cls isTrait ifFalse: [ 
+					methods addAll: cls class methods ].
 				methods addAll: cls methods ] ].
 		methods ].
 ]
@@ -309,13 +326,8 @@ Pharo2VW >> nameSpaceImports [
 	| imports |
 	imports := Set with: #Smalltalk.
 	imports addAll: self externalNamespaces.
-	self classes
-		do: [ :ea | 
-			(ea name copyFrom: 1 to: 2) = 'WA'
-				ifTrue: [ imports add: #Seaside ].
-			(ea superclass name copyFrom: 1 to: 2) = 'WA'
-				ifTrue: [ imports add: #Seaside ] ].
-	imports remove: self environment asSymbol ifAbsent: [ "it was not there" ].
+	
+	imports remove: self namespace asSymbol ifAbsent: [ "it was not there" ].
 	^ String
 		streamContents: [ :stream | 
 			imports
@@ -325,6 +337,16 @@ Pharo2VW >> nameSpaceImports [
 						nextPutAll: ea;
 						nextPutAll: '.*' ]
 				separatedBy: [ stream space ] ]
+]
+
+{ #category : #accessing }
+Pharo2VW >> namespace [
+	^ namespace
+]
+
+{ #category : #accessing }
+Pharo2VW >> namespace: aString [
+	namespace := aString
 ]
 
 { #category : #public }
@@ -342,7 +364,7 @@ Pharo2VW >> packageFor: aClass [
 
 { #category : #export }
 Pharo2VW >> packageNameForClass: aClass [
-	^ aClass theNonMetaClass category
+	^ aClass instanceSide category
 ]
 
 { #category : #export }
@@ -378,7 +400,7 @@ Pharo2VW >> packagesTags: ps [
 	packagesTags := ps
 ]
 
-{ #category : #export }
+{ #category : #'export helpers' }
 Pharo2VW >> prettyPrint: aString [ 
 	"Replace _ with := unless it is preceded with $ or a single quote"
 	| previousChar withinQuotes withinComments |

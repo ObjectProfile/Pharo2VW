@@ -11,32 +11,22 @@ Class {
 Pharo2VWExamples >> exampleExportPackageBasic [
 	"This creates a new files MySpaceInVW.st a file with all the sourcecode of the packages"
 	Pharo2VW exporter
-		environment: 'MySpaceInVW';
+		namespace: 'MySpaceInVW';
 		package: 'Moose-TestResources-LAN';
-		export.
-]
-
-{ #category : #examples }
-Pharo2VWExamples >> exampleExportRoassalDisplayMethodsWithArray [
-	"This creates a new files MySpaceInVW.st a file with all the sourcecode of the packages"
-	Pharo2VW exporter
-		environment: 'MySpaceInVW';
-		externalNamespaces: {'Roassal2'};
-		methodsBlacklist: {Pharo2VWExamples >> #example03. Pharo2VWExamples >> #example02};
-		package: 'Pharo2VW';
-		showMethodsWithArray: true;
-		"checkForArrays;" "For test all ok but not with hapao"
+		classNameMapperDo: [ :m | 
+			m at: TLANInterface put: 'LANPool' ];
 		export.
 ]
 
 { #category : #examples }
 Pharo2VWExamples >> exampleExportRoassalWithoutSomeMethods [
+	<script: 'self new exampleExportRoassalWithoutSomeMethods'>
 	"This creates a new files MySpaceInVW.st a file with all the sourcecode of the packages"
 	Pharo2VW exporter
 		directory: FileSystem disk workingDirectory;
 		environment: 'MySpaceInVW';
 		externalNamespaces: {'Roassal2'};
-		methodsBlacklist: {Pharo2VWExamples >> #example02};
+		methodsBlacklist: {Pharo2VWExamples >> #exampleExportRoassalWithoutSomeMethods};
 		package: 'Pharo2VW';
 		export.
 ]

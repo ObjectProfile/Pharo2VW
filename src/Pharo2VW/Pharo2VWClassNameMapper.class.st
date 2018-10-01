@@ -4,48 +4,52 @@ I am a mapper between the Pharo class names and the VW ones
 Class {
 	#name : #Pharo2VWClassNameMapper,
 	#superclass : #Object,
+	#instVars : [
+		'classNameMapping'
+	],
 	#category : #'Pharo2VW-Core'
 }
 
 { #category : #accessing }
-Pharo2VWClassNameMapper >> classNameMapping [
-	^ {TestCase -> 'Smalltalk.SUnit.TestCase'.
-	Object -> 'Core.Object'.
-	TBehavior -> 'Core.Behavior' .
-	Color -> 'ColorValue'
-	} asDictionary
+Pharo2VWClassNameMapper >> at: class put: association [
+	self classNameMapping at: class put: association
 ]
 
-{ #category : #testing }
-Pharo2VWClassNameMapper >> isSeasideClass: aClass [
-	^ (#('WA' 'SU' 'CT') includes: (aClass name copyFrom: 1 to: 2))
+{ #category : #accessing }
+Pharo2VWClassNameMapper >> at: class putName: string namespace: namespace [
+	self classNameMapping at: class put: namespace -> string
+]
+
+{ #category : #accessing }
+Pharo2VWClassNameMapper >> at: class putNamespace: namespace [
+	self classNameMapping at: class put: namespace -> class name
+]
+
+{ #category : #accessing }
+Pharo2VWClassNameMapper >> classNameMapping [
+	^ classNameMapping ifNil: [ classNameMapping := 
+		{TestCase -> ('Smalltalk.SUnit'->'TestCase').
+		Object -> ('Core'->'Ojbect').
+		TBehavior -> ('Core'->'Behavior').
+		Color -> ('Core'->'ColorValue')
+		} asDictionary]
 ]
 
 { #category : #'double dispatch' }
-Pharo2VWClassNameMapper >> nameForBehaviorClass: class [
-	^ (self isSeasideClass: class)
-		ifTrue: [ self nameForSeaside: class ]
-		ifFalse: [ class name ]
+Pharo2VWClassNameMapper >> fullNameForClass: class [
+	^ self classNameMapping at: class 
+		ifPresent: [ :a | a key,'.',a value ]
+		ifAbsent: [ class name ]
 ]
 
 { #category : #'double dispatch' }
 Pharo2VWClassNameMapper >> nameForClass: class [
-	^ self classNameMapping at: class ifAbsent: [ class name ]
-]
-
-{ #category : #'double dispatch' }
-Pharo2VWClassNameMapper >> nameForObjectClass: class [
-	(self isSeasideClass: class)
-		ifTrue: [ ^ self nameForSeaside: class ].
-	^ self nameForClass: class
-]
-
-{ #category : #'double dispatch' }
-Pharo2VWClassNameMapper >> nameForSeaside: aClass [
-	^ 'Seaside.' , aClass name
+	^ self classNameMapping at: class 
+		ifPresent: [ :a | a value ]
+		ifAbsent: [ class name ]
 ]
 
 { #category : #'instance creation' }
 Pharo2VWClassNameMapper >> on: aClass [ 
-	^ aClass visualworksNameOn: self
+	^ self nameForClass: aClass
 ]
