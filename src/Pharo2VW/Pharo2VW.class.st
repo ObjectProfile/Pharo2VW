@@ -69,7 +69,6 @@ Pharo2VW >> directory: aNewDirectory [
 { #category : #public }
 Pharo2VW >> export [
 	| filename stream |
-	self loadXMLIfNecessary.
 	filename := self directory / (self namespace , '.st').
 	filename exists
 		ifTrue: [ filename delete ].
@@ -263,23 +262,6 @@ Pharo2VW >> initialize [
 	directory := FileSystem disk workingDirectory.
 	namespace := nil.
 	externalNamespaces := #()
-]
-
-{ #category : #'export helpers' }
-Pharo2VW >> loadXMLIfNecessary [
-	(RPackageOrganizer default includesPackageNamed: 'XML-Parser')
-		ifTrue: [ ^ self ].
-	Metacello new
-		smalltalkhubUser: 'Pharo' project: 'MetaRepoForPharo70';
-		configuration: 'XMLParser';
-		version: #stable;
-		load.
-	
-	Metacello new
-		smalltalkhubUser: 'Pharo' project: 'MetaRepoForPharo70';
-		configuration: 'XPath';
-		version: #stable;
-		load.
 ]
 
 { #category : #export }
