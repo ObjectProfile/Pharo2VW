@@ -1,19 +1,19 @@
 # Pharo2VW
 
-This is an exporter from pharo source code to visualworks file with extention ".st"
+This is an exporter from pharo source code to visualworks file with extention ".st", but this creates an XML that can be read by many smalltalks dialects.
 
 ## Prerequisites
 
-You will need pharo5 up and visualworks 7.4 up
+You will need pharo6 up and visualworks 7.4 up
 
 ## Installing
 
 In pharo playground execute the next piece of code
 
 ```Smalltalk
-Gofer it
-	smalltalkhubUser: 'ObjectProfile' project: 'Pharo2VW';
-	package: 'Pharo2VW';
+Metacello new
+	baseline: 'Pharo2VW';
+	repository: 'github://ObjectProfile/Pharo2VW/src';
 	load.
 ```
 
@@ -41,18 +41,7 @@ Pharo2VW exporter
 	export.
 ```
 
-Visualworks do not have the same array notation for {}. Then you need to change your code to avoid these symbols. You can use the exporter to dectect the methods that containts this array definition with `checkForArrays`. By other hand `showMethodsWithArray: true` will open a browser in pharo for each method that use {}
-
-```Smalltalk
-Pharo2VW exporter
-	environment: 'MySpaceInVW';
-	externalNamespaces: {'Roassal2'};
-	methodsBlacklist: {Pharo2VWExamples >> #example03. Pharo2VWExamples >> #example02};
-	package: 'Pharo2VW';
-	showMethodsWithArray: true;
-	checkForArrays;
-	export.
-```
+Visualworks do not have the same array notation for {}. But do not worry this exporter export this `{'A'}` in this order `(Array new: 1) at: 1 put: 'A'`
 
 ### Loading the file in VisualWorks
 
@@ -61,7 +50,7 @@ After you get the file `MySpaceInVW.st` you can load it into a visualworks image
 1. In this example, create a bundle called `MyBundle`, and add the package `MyPackage` in that bundle
 2. For `MyPackage`, rightclick then select the option `File into...`.
 3. Select the file `MySpaceInVW.st` and load it.
-4. If you get some error loading the file. Delete the loaded code, and fix the problem in pharo. (Common errors: your code have '{}', or your code have '..', etc )
+4. If you get some error loading the file. Delete the loaded code, and fix the problem in pharo. (Common errors: your code have some pharo things, etc )
 5. At this point your code is loaded in visualworks all classes in the same package. Probably now you need the classes have the same package organization. In that case try to use the next piece of code.
 
 ```Smalltalk
@@ -79,7 +68,7 @@ classes do: [ :cls |
 ```
 6. Run the tests, you need to have many tests to ensure that you code works well in Visualworks like in pharo
 7. In some cases you will need code that not exists in pharo. In that case you can create class extentions. In this example maybe we need to have a particular method of `Color` from pharo in `ColorValue` the color class in visualworks. So we can create an extention.
-8. Create the package `MyPackage-extentions` then rightclick in the class area, and select `add class extention` for class `ColorValue`. With extentions you can add or override existing methods in visualworks, please try to avoid overrides.
+8. Create the package `MyPackage-extentions` then rightclick in the class area, and select `add class extention` for class `ColorValue`. With extentions you can add or override existing methods in visualworks, please try to avoid overrides in visualworks.
 8. In case that you need a different class of visualworks like `DateAndTime` in pharo, but for visualworks that class is `Timestamp`. Maybe you will need a class `Platform` in order to idenfify when your system is running in pharo or in visualworks, to use the correct classes.
 10. In case that you need to update your code. You will need to delete all the code and packages(except extentions) and load the process again. For that case use this example script.
 
@@ -107,15 +96,14 @@ b containedItems: list.
 ```
 13. Now publish your code and drink a glass of beer!!
 
+![Image of my old friend](https://i.pinimg.com/236x/e7/da/53/e7da53ee485ed608633be2d3b91caebf--coffee-meme-sayings.jpg)
+
+
 Browse the `Pharo2VWExamples` in your system browser to get more examples
 
 ## Running the tests
 
 Use test runner to execute the tests. `Pharo2VWExporterTest` execute all the examples in `Pharo2VWExamples`
-
-## Versioning
-
-We use [Smalltalkhub](http://smalltalkhub.com/) for versioning. For the versions available, see the [Pharo2VW](http://smalltalkhub.com/#!/~ObjectProfile/Pharo2VW/). 
 
 ## License
 
