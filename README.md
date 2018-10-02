@@ -94,7 +94,7 @@ list remove: r first.
 list add: r first.
 b containedItems: list.
 ```
-13. Now publish your code and drink a glass of beer!!
+13. Now publish your code and drink a glass of coffee!!
 
 ![Image of my old friend](https://i.pinimg.com/236x/e7/da/53/e7da53ee485ed608633be2d3b91caebf--coffee-meme-sayings.jpg)
 
