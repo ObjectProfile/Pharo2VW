@@ -79,25 +79,22 @@ Pharo2VWExporterTest >> testExampleExportLan [
 
 { #category : #tests }
 Pharo2VWExporterTest >> testExampleExportPackageBasicClasses [
-	| inst |
+	| inst classes |
 	inst := Pharo2VWExamples new.
-	inst exampleExportPackageBasic.
+	classes := (inst exampleExportPackageBasic) classes.
 	self parseGeneratedXML.
 	self
 		assert: (self xPathFor: '//class') size
-		equals:
-			((RPackageOrganizer default packageNamed: 'Moose-TestResources-LAN') classes select: #isClass)
-				size.
+		equals: classes size.
 	rootPath := '/st-source/class[1]/'.
+	classes := Class superclassOrder: classes copy.
 	self
 		testValues:
-			{('name' -> 'LANPool').
+			{('name' -> classes first name).
 			('environment' -> 'MySpaceInVW').
-			('super' -> 'SharedPool').
 			('private' -> 'false').
 			('indexed-type' -> 'none').
-			('inst-vars' -> '').
-			('class-inst-vars' -> '').
+			('inst-vars' -> classes first instanceVariablesString).
 			('imports' -> '').
 			('category' -> 'Moose-TestResources-LAN').
 			('attributes/package' -> 'Moose-TestResources-LAN')} asDictionary
@@ -131,47 +128,19 @@ Instance Variables:
 
 { #category : #tests }
 Pharo2VWExporterTest >> testExampleExportPackageBasicMethods [
-	| inst a b |
+	| inst a methods|
 	inst := Pharo2VWExamples new.
-	inst exampleExportPackageBasic.
+	methods := inst exampleExportPackageBasic methods.
 	self parseGeneratedXML.
 	a := self xPathFor: '//methods'.
-	b := (RPackageOrganizer default packageNamed: 'Moose-TestResources-LAN') classes
-			flatCollect: [:cls | 
-				cls methods, 
-				(cls isTrait ifTrue: [ #() ] ifFalse: [ cls class methods ])
-			] as: OrderedCollection.
 	self
 		assert: a size
-		equals: b size.
-	rootPath := '/st-source/methods[1]/'. 
+		equals: methods size.
+	rootPath := '/st-source/methods[1]/'.
 	self
 		testValues:
-			{('class-id' -> 'MySpaceInVW.TLANInterface').
-			('category' -> 'as yet unclassified').
-			('body'
-				->
-					'originate
-  | dialogModel dialogBuilder returnVal packet dialogOriginator dialogAddressee dialogContents |
-  "the next three lines create ValueHolders to support the three dialog widgets"
-  dialogOriginator := nil asValue.
-  dialogAddressee := nil asValue.
-  dialogContents := String new asValue.
-  
-  "next two lines create a new SimpleDialog object and retrieves the builder"dialogModel := Smalltalk at: #SimpleDialog new.
-  dialogBuilder := dialogModel builder.
-  
-  "the following lines connect  the widgets of the interface with the ValueHolders created"dialogBuilder aspectAt: #originator put: dialogOriginator.
-  dialogBuilder aspectAt: #addressee put: dialogAddressee.
-  dialogBuilder aspectAt: #contents put: dialogContents.
-  
-  "the following lines ask the LANInterface for the originators and outputters menus.  
-	You will write these next, so select proceed when VisualWorks when VisualWorks indicates that they are new messages."returnVal := dialogModel openFor: self interface: #originateDialog.
-  
-  "returnvalue will be true if the user selected Accept, otherwise it will be false"returnVal ifTrue: [ packet := LANPacket new
-           addressee: (LANSingleDestinationAddress new id: dialogAddressee value name);
-           contents: dialogContents value.
-        dialogOriginator value originate: packet ]')} asDictionary
+			{('class-id' -> ('MySpaceInVW.', methods first realClass name)).
+			('category' -> methods first category). } asDictionary
 ]
 
 { #category : #tests }

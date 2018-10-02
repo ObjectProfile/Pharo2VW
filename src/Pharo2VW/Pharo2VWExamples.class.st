@@ -10,12 +10,14 @@ Class {
 { #category : #examples }
 Pharo2VWExamples >> exampleExportPackageBasic [
 	"This creates a new files MySpaceInVW.st a file with all the sourcecode of the packages"
-	Pharo2VW exporter
+	^ Pharo2VW exporter
 		namespace: 'MySpaceInVW';
 		package: 'Moose-TestResources-LAN';
 		classNameMapperDo: [ :m | 
 			m at: TLANInterface put: 'LANPool' ];
-		export.
+		export;
+		yourself
+	
 ]
 
 { #category : #examples }

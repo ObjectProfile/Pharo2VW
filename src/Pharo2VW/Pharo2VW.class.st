@@ -40,7 +40,7 @@ Pharo2VW >> classNameMapperDo: block [
 
 { #category : #accessing }
 Pharo2VW >> classes [
-	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] ]
+	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] as: OrderedCollection ]
 ]
 
 { #category : #'export helpers' }
@@ -133,7 +133,7 @@ Pharo2VW >> fileOutClassDefinition: aClass [
 
 { #category : #export }
 Pharo2VW >> fileOutClassDefinitions [
-	((Class superclassOrder: self classes) select: #isClass)
+	((Class superclassOrder: self classes copy) select: #isClass)
 		do: [:ea | self fileOutClassDefinition: ea]
 		displayingProgress: 'Filing out classes...'
 ]
