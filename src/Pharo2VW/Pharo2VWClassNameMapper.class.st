@@ -29,7 +29,7 @@ Pharo2VWClassNameMapper >> at: class putNamespace: namespace [
 Pharo2VWClassNameMapper >> classNameMapping [
 	^ classNameMapping ifNil: [ classNameMapping := 
 		{TestCase -> ('Smalltalk.SUnit'->'TestCase').
-		Object -> ('Core'->'Ojbect').
+		Object -> ('Core'->'Object').
 		TBehavior -> ('Core'->'Behavior').
 		Color -> ('Core'->'ColorValue')
 		} asDictionary]
