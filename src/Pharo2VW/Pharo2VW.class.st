@@ -13,7 +13,8 @@ Class {
 		'methods',
 		'methodsBlacklist',
 		'writer',
-		'mapper'
+		'mapper',
+		'filename'
 	],
 	#category : #'Pharo2VW-Core'
 }
@@ -48,7 +49,7 @@ Pharo2VW >> convertCurlyBraces: aCompiledMethod [
 	| ast |
 	ast := aCompiledMethod copy ast.
 	Pharo2VWCurlyBracesConvertor new visitNode: ast.
-	^ BISimpleFormatter format: ast
+	^ BIConfigurableFormatter format: ast
 ]
 
 { #category : #'export helpers' }
@@ -68,15 +69,18 @@ Pharo2VW >> directory: aNewDirectory [
 
 { #category : #public }
 Pharo2VW >> export [
-	| filename stream |
-	filename := self directory / (self namespace , '.st').
-	filename exists
-		ifTrue: [ filename delete ].
-	stream := filename writeStream.
+	| file stream |
+	file := self filename 
+		ifNil: [self directory / (self namespace , '.st')] 
+		ifNotNil: [:f | self directory / f].
+	file exists
+		ifTrue: [ file delete ].
+	stream := file writeStream.
 	writer := (XMLWriter on: stream)
 		enablePrettyPrinting;
 		yourself.
 	[ writer xml.
+	writer formatter indentString: '	'.
 	writer
 		tag: 'st-source'
 		with: [ self fileOutTimeStamp.
@@ -186,11 +190,11 @@ Pharo2VW >> fileOutMethodBody: aMethodReference [
 	"See if an extension method includes a reference to some of our classes"
 	ref := self getClassNamesUsedIn: aMethodReference.
 	"Prefix the class names with the target namespace"
-	ref do: [ :className | methodString := methodString copyReplaceTokens: className with: self environment , '.' , className ].
+	ref do: [ :className | methodString := methodString copyReplaceTokens: className with: self namespace , '.' , className ].
 	writer
 		tag: 'body'
 		attributes: {('package' -> (self packageNameForMethod: aMethodReference))} asDictionary
-		with: methodString asXMLEscapedString
+		with: methodString "asXMLEscapedString not needed, XMLWriter already manages that"
 ]
 
 { #category : #export }
@@ -209,15 +213,25 @@ Pharo2VW >> fileOutNameSpace [
 		with: [ writer tag: 'name' with: self namespace.
 			writer tag: 'environment' with: 'Smalltalk'.
 			writer tag: 'private' with: 'false'.
-			writer tag: 'imports' with: self nameSpaceImports ].
-	writer tag: 'category' with: self namespace.
-	writer tag: 'attributes' with: [ writer tag: 'package' with: self namespace ]
+			writer tag: 'imports' with: self nameSpaceImports.
+			writer tag: 'category' with: self namespace.
+			writer tag: 'attributes' with: [ writer tag: 'package' with: self namespace ] ]
 ]
 
 { #category : #export }
 Pharo2VW >> fileOutTimeStamp [
 	writer tag: 'time-stamp'
 		with: 'From ', Smalltalk version, ' on ', Date today printString, ' at ', Time now printString.
+]
+
+{ #category : #accessing }
+Pharo2VW >> filename [
+	^ filename
+]
+
+{ #category : #accessing }
+Pharo2VW >> filename: aFilename [
+	filename := aFilename
 ]
 
 { #category : #export }
@@ -306,7 +320,7 @@ Pharo2VW >> mustBeQualified: aClass [
 { #category : #'export helpers' }
 Pharo2VW >> nameSpaceImports [
 	| imports |
-	imports := Set with: #Smalltalk.
+	imports := OrderedCollection with: #Smalltalk.
 	imports addAll: self externalNamespaces.
 	
 	imports remove: self namespace asSymbol ifAbsent: [ "it was not there" ].
@@ -314,11 +328,12 @@ Pharo2VW >> nameSpaceImports [
 		streamContents: [ :stream | 
 			imports
 				do: [ :ea | 
-					stream
+					stream 
+						crtab: 3;
 						nextPutAll: 'private ';
 						nextPutAll: ea;
-						nextPutAll: '.*' ]
-				separatedBy: [ stream space ] ]
+						nextPutAll: '.*' ].
+			stream crtab:3]
 ]
 
 { #category : #accessing }
@@ -339,8 +354,8 @@ Pharo2VW >> package: aString [
 { #category : #'export helpers' }
 Pharo2VW >> packageFor: aClass [
 	self externalNamespaces do: [ :name | | pkg |
-		pkg := RPackageOrganizer default packageNamed: name.
-		(pkg includesClass: aClass) ifTrue: [ ^ pkg ] ].
+		pkg := RPackageOrganizer default packageNamed: name ifAbsent:[].
+		(pkg notNil and: [pkg includesClass: aClass]) ifTrue: [ ^ pkg ] ].
 	^ nil.
 ]
 
@@ -353,7 +368,7 @@ Pharo2VW >> packageNameForClass: aClass [
 Pharo2VW >> packageNameForMethod: aMethodReference [
 	^ (self includesClass: aMethodReference realClass)
 		ifTrue: [self packageNameForClass: aMethodReference realClass]
-		ifFalse: [ self environment,'-Extensions']
+		ifFalse: [ self namespace,'-Extensions']
 ]
 
 { #category : #public }
