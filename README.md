@@ -23,7 +23,7 @@ In your playground execute the next piece of code
 
 ```Smalltalk
 Pharo2VW exporter
-	environment: 'MySpaceInVW';
+	namespace: 'MySpaceInVW';
 	package: 'Pharo2VW';
 	export.
 ```
@@ -34,9 +34,9 @@ In the next example try to change the output directory with the selector: `direc
 ```Smalltalk
 Pharo2VW exporter
 	directory: FileSystem disk workingDirectory/'exports';
-	environment: 'MySpaceInVW';
+	namespace: 'MySpaceInVW';
 	externalNamespaces: {'Roassal2'};
-	methodsBlacklist: {Pharo2VWExamples >> #example02};
+	methodsBlacklist: {Pharo2VWExamples >> #exampleExportRoassalWithoutSomeMethods};
 	package: 'Pharo2VW';
 	export.
 ```
