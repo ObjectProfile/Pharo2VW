@@ -31,7 +31,8 @@ Pharo2VWClassNameMapper >> classNameMapping [
 		{TestCase -> ('Smalltalk.SUnit'->'TestCase').
 		Object -> ('Core'->'Object').
 		TBehavior -> ('Core'->'Behavior').
-		Color -> ('Core'->'ColorValue')
+		Color -> ('Core'->'ColorValue').
+		RBProgramNodeVisitor -> ('Refactory.Browser' -> 'RBProgramNodeVisitor').
 		} asDictionary]
 ]
 
