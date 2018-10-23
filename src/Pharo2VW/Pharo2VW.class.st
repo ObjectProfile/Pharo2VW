@@ -165,9 +165,10 @@ Pharo2VW >> fileOutInitializerForClass: aClass [
 ]
 
 { #category : #export }
-Pharo2VW >> fileOutInitializers [		
-	(self classes select: [:c | c class includesSelector: #initialize])
-		do: [:class | self fileOutInitializerForClass: class].
+Pharo2VW >> fileOutInitializers [
+	(self classes
+		select: [ :c | c isClass and: [ c class includesSelector: #initialize ] ])
+		do: [ :class | self fileOutInitializerForClass: class ]
 ]
 
 { #category : #export }
@@ -293,9 +294,9 @@ Pharo2VW >> methods [
 		self packagesTags do: [ :pkg | 
 			methods addAll: (pkg package extensionsForTag: pkg).
 			pkg classes do: [ :cls | 
-				cls isTrait ifFalse: [ 
-					methods addAll: cls class methods ].
-				methods addAll: cls methods ] ].
+				cls isClass ifTrue: [ 
+					methods addAll: cls class methods.
+					methods addAll: cls methods ] ] ].
 		methods ].
 ]
 
