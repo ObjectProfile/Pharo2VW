@@ -28,9 +28,10 @@ Pharo2VWClassNameMapper >> at: class putNamespace: namespace [
 { #category : #accessing }
 Pharo2VWClassNameMapper >> classNameMapping [
 	^ classNameMapping ifNil: [ classNameMapping := 
-		{TestCase -> ('Smalltalk.SUnit'->'TestCase').
-		Object -> ('Core'->'Object').
-		TBehavior -> ('Core'->'Behavior').
+		{TestCase -> ('Smalltalk.SUnit' -> 'TestCase').
+		TestResource -> ('Smalltalk.SUnit' -> 'TestResource').
+		Object -> ('Core' -> 'Object').
+		TBehavior -> ('Core' -> 'Behavior').
 		Color -> ('Core'->'ColorValue').
 		RBProgramNodeVisitor -> ('Refactory.Browser' -> 'RBProgramNodeVisitor').
 		} asDictionary]
