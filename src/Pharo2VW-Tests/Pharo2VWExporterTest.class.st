@@ -81,7 +81,7 @@ Pharo2VWExporterTest >> testExampleExportLan [
 Pharo2VWExporterTest >> testExampleExportPackageBasicClasses [
 	| inst classes |
 	inst := Pharo2VWExamples new.
-	classes := (inst exampleExportPackageBasic) classes.
+	classes := (inst exampleExportPackageBasic) classes select: #isClass.
 	self parseGeneratedXML.
 	self
 		assert: (self xPathFor: '//class') size
