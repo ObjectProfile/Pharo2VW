@@ -14,7 +14,8 @@ Class {
 		'methodsBlacklist',
 		'writer',
 		'mapper',
-		'filename'
+		'filename',
+		'addNewInitializerToSuperclasses'
 	],
 	#category : #'Pharo2VW-Core'
 }
@@ -22,6 +23,11 @@ Class {
 { #category : #'instance creation' }
 Pharo2VW class >> exporter [
 	^ self new
+]
+
+{ #category : #public }
+Pharo2VW >> addNewInitializerToSuperclasses: bool [
+	addNewInitializerToSuperclasses := bool
 ]
 
 { #category : #'export helpers' }
@@ -34,14 +40,16 @@ Pharo2VW >> classNameMapper [
 	^ mapper ifNil: [ mapper := Pharo2VWClassNameMapper new]
 ]
 
-{ #category : #accessing }
+{ #category : #public }
 Pharo2VW >> classNameMapperDo: block [
 	block value: self classNameMapper 
 ]
 
 { #category : #accessing }
 Pharo2VW >> classes [
-	^ classes ifNil: [ classes := self packagesTags flatCollect: [ :pkg | pkg classes ] as: OrderedCollection ]
+	^ classes ifNil: [ 
+		classes := self packagesTags flatCollect: [ :pkg | 
+			pkg classes reject: #isTrait ] as: OrderedCollection ]
 ]
 
 { #category : #'export helpers' }
@@ -87,6 +95,7 @@ Pharo2VW >> export [
 			self fileOutNameSpace.
 			self fileOutClassDefinitions.
 			self fileOutMethods.
+			self fileOutNewInitializers.
 			self fileOutInitializers ].
 	writer write ]
 		ensure: [ stream close ]
@@ -172,10 +181,16 @@ Pharo2VW >> fileOutInitializers [
 
 { #category : #export }
 Pharo2VW >> fileOutMethod: aMethodReference [
+	self fileOutMethod: aMethodReference reference: aMethodReference realClass. 
+
+]
+
+{ #category : #export }
+Pharo2VW >> fileOutMethod: aMethodReference reference: cls [
 	writer tag: 'methods' with: [
 		writer
 			tag: 'class-id' 
-			with: (self fullyQualifiedClassNameFor: aMethodReference realClass).
+			with: (self fullyQualifiedClassNameFor: cls).
 		writer tag: 'category' with: (self categoryForMethod: aMethodReference).
 		self fileOutMethodBody: aMethodReference.
 	]
@@ -199,11 +214,11 @@ Pharo2VW >> fileOutMethodBody: aMethodReference [
 
 { #category : #export }
 Pharo2VW >> fileOutMethods [
-	self methods
+	self methods 
 		do: [:ea |
 			(self methodsBlacklist includes: ea) 
 				ifFalse: [ self fileOutMethod: ea] ]
-		displayingProgress: 'Filing out methods...'
+		displayingProgress: 'Filing out methods...'.
 ]
 
 { #category : #export }
@@ -216,6 +231,31 @@ Pharo2VW >> fileOutNameSpace [
 			writer tag: 'imports' with: self nameSpaceImports.
 			writer tag: 'category' with: self namespace.
 			writer tag: 'attributes' with: [ writer tag: 'package' with: self namespace ] ]
+]
+
+{ #category : #export }
+Pharo2VW >> fileOutNewInitializer: cls [
+	(cls class includesSelector: #new) ifTrue: [ ^ self ].
+	writer tag: 'methods' with: [
+		writer
+			tag: 'class-id' 
+			with: (self fullyQualifiedClassNameFor: cls class).
+		writer tag: 'category' with: 'instance creation'.
+		writer
+			tag: 'body' 
+			attributes: {('package' -> ( self packageNameForClass: cls))} asDictionary 
+			with: 'new
+	^ super new initialize'.
+	]
+]
+
+{ #category : #export }
+Pharo2VW >> fileOutNewInitializers [
+	addNewInitializerToSuperclasses ifFalse: [ ^ self ].
+
+	self superclasses 
+		do: [ :cls | self fileOutNewInitializer: cls ]
+		displayingProgress: 'Filing out initializer'.
 ]
 
 { #category : #export }
@@ -236,7 +276,6 @@ Pharo2VW >> filename: aFilename [
 
 { #category : #export }
 Pharo2VW >> fullyQualifiedClassNameFor: aClass [
-	aClass ifNil: [ ^ 'SharedPool' ].
 	^ (self includesClass: aClass)
 		ifTrue: [self namespace, '.', aClass name]
 		ifFalse: [ | pkg |
@@ -275,7 +314,8 @@ Pharo2VW >> initialize [
 	super initialize.
 	directory := FileSystem disk workingDirectory.
 	namespace := nil.
-	externalNamespaces := #()
+	externalNamespaces := #().
+	addNewInitializerToSuperclasses := false.
 ]
 
 { #category : #export }
@@ -294,8 +334,8 @@ Pharo2VW >> methods [
 			methods addAll: (pkg package extensionsForTag: pkg).
 			pkg classes do: [ :cls | 
 				cls isTrait ifFalse: [ 
-					methods addAll: cls class methods ].
-				methods addAll: cls methods ] ].
+					methods addAll: cls class methods.
+					methods addAll: cls methods ] ] ].
 		methods ].
 ]
 
@@ -423,4 +463,23 @@ Pharo2VW >> prettyPrint: aString [
 											previousChar := c]]]].
 		
 
+]
+
+{ #category : #accessing }
+Pharo2VW >> superclasses [
+	| superclass |
+	superclass := nil.
+	superclass := [ :cls | 
+		(self includesClass: cls superclass)
+			ifTrue: [ superclass value: cls superclass ]
+			ifFalse: [ cls ]
+		 ].
+	
+	^ self classes collect: superclass as: Set.
+]
+
+{ #category : #accessing }
+Pharo2VW >> traits [
+	^ self packagesTags flatCollect: [ :pkg | 
+			pkg classes select: #isTrait ] as: OrderedCollection
 ]

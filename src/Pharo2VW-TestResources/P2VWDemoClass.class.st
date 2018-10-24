@@ -11,3 +11,8 @@ Class {
 P2VWDemoClass >> methodWithCurlyBraces [
 	{ #RGMetaclassDefinition. { 'Foo' asSymbol. self class name asSymbol }  }
 ]
+
+{ #category : #'as yet unclassified' }
+P2VWDemoClass >> methodWithDoubleXMLEscaping [
+	^ 1 < 2 > 3
+]
