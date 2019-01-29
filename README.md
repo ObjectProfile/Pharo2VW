@@ -1,6 +1,8 @@
 # Pharo2VW
 
-This is an exporter from pharo source code to visualworks file with extention ".st", but this creates an XML that can be read by many smalltalks dialects.
+It is a library to reliably export code from Pharo to Visualworks.
+
+Produce from Pharo code, loaded in the image, a .st file. The produced file is ready to be loaded by VisualWorks, BeeSmalltalk, and probably other Smalltalk dialect.
 
 ## Prerequisites
 
@@ -69,7 +71,7 @@ classes do: [ :cls |
 6. Run the tests, you need to have many tests to ensure that you code works well in Visualworks like in pharo
 7. In some cases you will need code that not exists in pharo. In that case you can create class extentions. In this example maybe we need to have a particular method of `Color` from pharo in `ColorValue` the color class in visualworks. So we can create an extention.
 8. Create the package `MyPackage-extentions` then rightclick in the class area, and select `add class extention` for class `ColorValue`. With extentions you can add or override existing methods in visualworks, please try to avoid overrides in visualworks.
-8. In case that you need a different class of visualworks like `DateAndTime` in pharo, but for visualworks that class is `Timestamp`. Maybe you will need a class `Platform` in order to idenfify when your system is running in pharo or in visualworks, to use the correct classes.
+8. In case that you need a different class of visualworks like `DateAndTime` in pharo, but for visualworks that class is `Timestamp`. Maybe you will need a class `Platform` in order to idenfify when your system is running in pharo or in visualworks, to use the correct classes. For this example we can use `ExamplePlatform current getJSONClass`. The method `current` will return the current smalltalk platform. In pharo we can create the class `PharoExamplePlatform` as subclass of `ExamplePlatform` and this class can define the method `getJSONClass`. By other hand in visualworks we can define the similar class `VWExamplePlatform`.
 10. In case that you need to update your code. You will need to delete all the code and packages(except extentions) and load the process again. For that case use this example script.
 
 ```Smalltalk
@@ -103,7 +105,7 @@ Browse the `Pharo2VWExamples` in your system browser to get more examples
 
 ## Running the tests
 
-Use test runner to execute the tests. `Pharo2VWExporterTest` execute all the examples in `Pharo2VWExamples`
+Use test runner to execute the tests. `Pharo2VWExporterTest` execute all the examples in `Pharo2VWExamples`.
 
 ## License
 
