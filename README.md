@@ -107,6 +107,12 @@ Browse the `Pharo2VWExamples` in your system browser to get more examples
 
 Use test runner to execute the tests. `Pharo2VWExporterTest` execute all the examples in `Pharo2VWExamples`.
 
+1. Pharo2VW offers Lint rules to check whether Pharo code do not use exotic syntactic extensions
+2. Traits are flattened into classes
+3. {} are transformed into Array
+4. Initialize methods are properly generated at the top of each class hierarchy
+5. Support namespace imports
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
