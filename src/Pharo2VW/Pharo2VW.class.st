@@ -83,22 +83,24 @@ Pharo2VW >> export [
 		ifNotNil: [:f | self directory / f].
 	file exists
 		ifTrue: [ file delete ].
-	stream := file writeStream.
-	writer := (XMLWriter on: stream)
-		enablePrettyPrinting;
-		yourself.
-	[ writer xml.
-	writer formatter indentString: '	'.
-	writer
-		tag: 'st-source'
-		with: [ self fileOutTimeStamp.
-			self fileOutNameSpace.
-			self fileOutClassDefinitions.
-			self fileOutMethods.
-			self fileOutNewInitializers.
-			self fileOutInitializers ].
-	writer write ]
-		ensure: [ stream close ]
+	file writeStreamDo: [ :st |
+		stream := st.
+		writer := (XMLWriter on: stream)
+			enablePrettyPrinting;
+			yourself.
+		writer xml.
+		writer formatter indentString: '	'.
+		writer
+			tag: 'st-source'
+			with: [ self fileOutTimeStamp.
+				self fileOutNameSpace.
+				self fileOutClassDefinitions.
+				self fileOutMethods.
+				self fileOutNewInitializers.
+				self fileOutInitializers ].
+		writer write
+	].
+	
 ]
 
 { #category : #accessing }

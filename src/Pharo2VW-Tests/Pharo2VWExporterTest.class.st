@@ -48,8 +48,8 @@ Pharo2VWExporterTest >> testAddInitializer [
 	
 	methods := self xPathFor: '//methods'.
 	self assert: methods size equals: exporter methods size + classes size.
-	self assert: (methods last // 'body') stringValue equals:  'new
-	^ super new initialize'.
+	self assert: (methods last // 'body') stringValue equals: ('new
+	^ super new initialize' copyReplaceAll: String cr with: String lf).
 ]
 
 { #category : #tests }
@@ -124,8 +124,8 @@ Pharo2VWExporterTest >> testDoubleXMLEscaping [
 	doubleXML := methodsContents detect: [ :node | node nodes first beginsWith: 'methodWithDoubleXMLEscaping' ].
 	self
 		assert: doubleXML nodes first asString 
-		equals: 'methodWithDoubleXMLEscaping
-	^ 1 < 2 > 3'.
+		equals: ('methodWithDoubleXMLEscaping
+	^ 1 < 2 > 3' copyReplaceAll: String cr with: String lf).
 ]
 
 { #category : #tests }
